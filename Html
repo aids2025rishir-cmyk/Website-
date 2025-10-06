@@ -1,0 +1,40 @@
+import pandas as pd from openpyxl import load_workbook from openpyxl.drawing.image import Image from openpyxl.styles import PatternFill, Font, Alignment
+
+Existing fixture data (Rounds 1-14, simplified for demonstration)
+
+fixtures = [ (1, '2025-10-10', 'Manchester United', 'Manchester City', 'Old Trafford'), (1, '2025-10-10', 'Arsenal FC', 'Sporting CP', 'Emirates Stadium'), (1, '2025-10-10', 'Real Madrid C.F', 'Tottenham Hotspurs', 'Santiago Bernabéu'), (1, '2025-10-10', 'Mohun Bagan Super Giants', 'FC Barcelona', 'Salt Lake Stadium'), # ... continue for all rounds ... ]
+
+Team logos (URLs or local paths)
+
+team_logos = { 'Manchester United': '/mnt/data/manu_logo.png', 'Manchester City': '/mnt/data/mancity_logo.png', 'Arsenal FC': '/mnt/data/arsenal_logo.png', 'Sporting CP': '/mnt/data/sporting_logo.png', 'Real Madrid C.F': '/mnt/data/realmadrid_logo.png', 'Tottenham Hotspurs': '/mnt/data/tottenham_logo.png', 'Mohun Bagan Super Giants': '/mnt/data/mohunbagan_logo.png', 'FC Barcelona': '/mnt/data/barcelona_logo.png' }
+
+Create DataFrame
+
+df = pd.DataFrame(fixtures, columns=['Round', 'Date', 'Home Team', 'Away Team', 'Venue']) df['Time'] = '7:30 PM'
+
+Save initial Excel
+
+excel_path = '/mnt/data/efootball_fixtures_styled.xlsx' df.to_excel(excel_path, index=False)
+
+Load workbook to add images and styling
+
+wb = load_workbook(excel_path) ws = wb.active
+
+Styling headers
+
+header_fill = PatternFill(start_color='FFD700', end_color='FFD700', fill_type='solid') for cell in ws[1]: cell.fill = header_fill cell.font = Font(bold=True) cell.alignment = Alignment(horizontal='center', vertical='center')
+
+Alternating row colors
+
+for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row), start=2): fill_color = 'FFFACD' if i % 2 == 0 else 'FFFFFF' for cell in row: cell.fill = PatternFill(start_color=fill_color, end_color=fill_color, fill_type='solid')
+
+Add logos (Home and Away) before team names
+
+for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row), start=2): home_logo = Image(team_logos[row[2].value]) home_logo.width = 20 home_logo.height = 20 ws.add_image(home_logo, f'G{i}')  # G column for Home logo
+
+away_logo = Image(team_logos[row[3].value])
+away_logo.width = 20
+away_logo.height = 20
+ws.add_image(away_logo, f'H{i}')  # H column for Away logo
+
+wb.save(excel_path) excel_path
